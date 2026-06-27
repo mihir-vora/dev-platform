@@ -1,0 +1,22 @@
+services:
+  api:
+    restart: unless-stopped
+    environment:
+      COOKIE_SECURE: "true"
+      FRONTEND_URL: ${FRONTEND_URL:-https://app-dev.vibsl.com}
+      OAUTH_CALLBACK_BASE_URL: ${OAUTH_CALLBACK_BASE_URL:-https://app-dev.vibsl.com}
+
+  worker:
+    restart: unless-stopped
+
+  frontend:
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://app-dev.vibsl.com}
+
+  nginx:
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf:ro

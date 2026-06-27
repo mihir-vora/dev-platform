@@ -1,0 +1,12 @@
+DROP TRIGGER IF EXISTS trg_build_log_notify ON build_log_lines;
+DROP FUNCTION IF EXISTS notify_build_log_insert();
+DROP TABLE IF EXISTS build_log_lines;
+DROP TABLE IF EXISTS build_jobs;
+DROP TABLE IF EXISTS projects;
+DROP TABLE IF EXISTS oauth_accounts;
+DROP TABLE IF EXISTS users;
+DROP TYPE IF EXISTS oauth_provider;
+DROP TYPE IF EXISTS build_status;
+DROP TYPE IF EXISTS environment_name;
+DROP TYPE IF EXISTS runtime_type;
+DROP TYPE IF EXISTS git_provider;
