@@ -1,0 +1,22 @@
+{
+  "deploy": {
+    "orchestrator": "docker-compose",
+    "supervisor": false,
+    "build": "docker compose -f docker-compose.yml -f docker-compose.prod.yml build",
+    "start": "docker compose -f docker-compose.yml -f docker-compose.prod.yml up",
+    "port": 80,
+    "health": {
+      "path": "/health",
+      "strategy": "http"
+    },
+    "requiredEnv": [
+      "DATABASE_URL",
+      "SESSION_SECRET",
+      "GITHUB_CLIENT_ID",
+      "GITHUB_CLIENT_SECRET",
+      "FRONTEND_URL",
+      "OAUTH_CALLBACK_BASE_URL",
+      "NEXT_PUBLIC_API_URL"
+    ]
+  }
+}
