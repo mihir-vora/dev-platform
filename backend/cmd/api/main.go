@@ -16,7 +16,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
-	"github.com/redis/go-redis/v9"
 )
 
 func main() {
@@ -36,18 +35,8 @@ func main() {
 	}
 	defer store.Close()
 
-	redisOpts, err := redis.ParseURL(cfg.RedisURL)
-	if err != nil {
-		slog.Error("redis url parse failed", "error", err)
-		os.Exit(1)
-	}
-	redisClient := redis.NewClient(redisOpts)
-	if err := redisClient.Ping(ctx).Err(); err != nil {
-		slog.Error("redis ping failed", "error", err)
-		os.Exit(1)
-	}
-
-	authService := auth.NewService(cfg, store, redisClient)
+	kv := auth.NewKVStore(ctx, cfg.RedisURL)
+	authService := auth.NewService(cfg, store, kv)
 	handler := api.NewHandler(cfg, store)
 
 	r := chi.NewRouter()

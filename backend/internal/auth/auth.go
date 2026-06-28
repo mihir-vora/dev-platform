@@ -16,7 +16,6 @@ import (
 	"github.com/dev-platform/backend/internal/db"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/redis/go-redis/v9"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
 	"golang.org/x/oauth2/google"
@@ -30,21 +29,19 @@ type contextKey string
 const UserContextKey contextKey = "user"
 
 type Service struct {
-	cfg    *config.Config
-	store  *db.Store
-	redis  *redis.Client
-	oauth  map[string]*oauth2.Config
-	states map[string]string
+	cfg   *config.Config
+	store *db.Store
+	kv    kvStore
+	oauth map[string]*oauth2.Config
 }
 
-func NewService(cfg *config.Config, store *db.Store, redisClient *redis.Client) *Service {
+func NewService(cfg *config.Config, store *db.Store, kv kvStore) *Service {
 	gitlabBase := strings.TrimSuffix(cfg.GitLabBaseURL, "/")
 	s := &Service{
-		cfg:    cfg,
-		store:  store,
-		redis:  redisClient,
-		oauth:  make(map[string]*oauth2.Config),
-		states: make(map[string]string),
+		cfg:   cfg,
+		store: store,
+		kv:    kv,
+		oauth: make(map[string]*oauth2.Config),
 	}
 	if cfg.GitHubClientID != "" && cfg.GitHubClientSecret != "" {
 		s.oauth["github"] = &oauth2.Config{
@@ -98,7 +95,7 @@ func (s *Service) handleLogin(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "failed to create state", http.StatusInternalServerError)
 		return
 	}
-	if err := s.redis.Set(r.Context(), stateKey(state), provider, 10*time.Minute).Err(); err != nil {
+	if err := s.kv.Set(r.Context(), stateKey(state), provider, 10*time.Minute); err != nil {
 		http.Error(w, "failed to store state", http.StatusInternalServerError)
 		return
 	}
@@ -120,12 +117,12 @@ func (s *Service) handleCallback(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "missing state", http.StatusBadRequest)
 		return
 	}
-	storedProvider, err := s.redis.Get(r.Context(), stateKey(state)).Result()
+	storedProvider, err := s.kv.Get(r.Context(), stateKey(state))
 	if err != nil || storedProvider != provider {
 		http.Error(w, "invalid state", http.StatusBadRequest)
 		return
 	}
-	_ = s.redis.Del(r.Context(), stateKey(state))
+	_ = s.kv.Del(r.Context(), stateKey(state))
 
 	code := r.URL.Query().Get("code")
 	if code == "" {
@@ -156,7 +153,7 @@ func (s *Service) handleCallback(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "session create failed", http.StatusInternalServerError)
 		return
 	}
-	if err := s.redis.Set(r.Context(), sessionKey(sessionID), user.ID.String(), sessionTTL).Err(); err != nil {
+	if err := s.kv.Set(r.Context(), sessionKey(sessionID), user.ID.String(), sessionTTL); err != nil {
 		http.Error(w, "session store failed", http.StatusInternalServerError)
 		return
 	}
@@ -176,7 +173,7 @@ func (s *Service) handleCallback(w http.ResponseWriter, r *http.Request) {
 
 func (s *Service) handleLogout(w http.ResponseWriter, r *http.Request) {
 	if cookie, err := r.Cookie(sessionCookie); err == nil {
-		_ = s.redis.Del(r.Context(), sessionKey(cookie.Value))
+		_ = s.kv.Del(r.Context(), sessionKey(cookie.Value))
 	}
 	http.SetCookie(w, &http.Cookie{
 		Name:     sessionCookie,
@@ -197,7 +194,7 @@ func (s *Service) Middleware(next http.Handler) http.Handler {
 			writeUnauthorized(w)
 			return
 		}
-		userIDStr, err := s.redis.Get(r.Context(), sessionKey(cookie.Value)).Result()
+		userIDStr, err := s.kv.Get(r.Context(), sessionKey(cookie.Value))
 		if err != nil {
 			writeUnauthorized(w)
 			return

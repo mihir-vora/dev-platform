@@ -3,7 +3,7 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgres://devplatform:devplatform@postgres:5432/devplatform?sslmode=disable}
-      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      REDIS_URL: ${REDIS_URL:-}
       SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET is required}
       COOKIE_SECURE: "true"
       FRONTEND_URL: ${FRONTEND_URL:-https://app-dev.vibsl.com}
@@ -19,7 +19,7 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgres://devplatform:devplatform@postgres:5432/devplatform?sslmode=disable}
-      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      REDIS_URL: ${REDIS_URL:-}
       SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET is required}
       WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:-3}
       WORKER_POLL_INTERVAL: ${WORKER_POLL_INTERVAL:-1s}

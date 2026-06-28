@@ -51,9 +51,6 @@ func Load() (*Config, error) {
 	if cfg.DatabaseURL == "" {
 		return nil, fmt.Errorf("DATABASE_URL is required")
 	}
-	if cfg.RedisURL == "" {
-		return nil, fmt.Errorf("REDIS_URL is required")
-	}
 	if cfg.SessionSecret == "" {
 		return nil, fmt.Errorf("SESSION_SECRET is required")
 	}
