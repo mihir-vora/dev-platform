@@ -142,13 +142,31 @@ npm run dev
 
 For staging at `app-dev.vibsl.com`:
 
-**VIBSL auto-deploy** uses the root `Dockerfile` (API only, single process). It does not run `docker-compose.yml` or Supervisor. Ensure:
+**VIBSL auto-deploy** uses the root `Dockerfile`, which runs the **full stack** in one container:
 
-- GitHub default branch is `main` and matches your latest code (`git push origin master:main` if you use `master` locally).
-- `DATABASE_URL` and `SESSION_SECRET` are set in the VIBSL environment.
-- Health probe: `GET /health` on port `8080`.
+- nginx (public entry on `$PORT`)
+- Next.js frontend
+- Go API (internal `:8081`)
+- Go worker
+- automatic DB migrations on startup
 
-The full stack (frontend, worker, nginx) is deployed via Compose locally or by the VIBSL team for staging review.
+Set these in the VIBSL environment:
+
+```env
+DATABASE_URL=postgres://USER:PASS@db-devplatform-rw....svc:5432/DB?sslmode=require
+REDIS_URL=redis://...          # optional; in-memory sessions if omitted
+SESSION_SECRET=<32+ chars>
+FRONTEND_URL=https://your-app.vibsl.app
+OAUTH_CALLBACK_BASE_URL=https://your-app.vibsl.app
+COOKIE_SECURE=true
+GITHUB_CLIENT_ID=...
+GITHUB_CLIENT_SECRET=...
+```
+
+- Health probe: `GET /health` on `$PORT` (usually `8080`).
+- Do **not** use `localhost` in `DATABASE_URL` on VIBSL.
+
+Local full stack: `docker compose -f docker-compose.local.yml up --build`
 
 1. Set production values in `.env`:
 

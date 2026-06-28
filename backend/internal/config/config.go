@@ -30,7 +30,7 @@ type Config struct {
 
 func Load() (*Config, error) {
 	cfg := &Config{
-		Port:               getEnv("PORT", "8080"),
+		Port:               getEnv("API_PORT", getEnv("PORT", "8080")),
 		DatabaseURL:        os.Getenv("DATABASE_URL"),
 		RedisURL:           os.Getenv("REDIS_URL"),
 		SessionSecret:      os.Getenv("SESSION_SECRET"),
