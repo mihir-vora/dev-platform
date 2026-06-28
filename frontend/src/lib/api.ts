@@ -117,13 +117,7 @@ export const api = {
   getLogs: (id: string, afterSeq = 0) =>
     request<{ logs: LogLine[] }>(`/api/v1/builds/${id}/logs?after_seq=${afterSeq}`),
   cancelBuild: (id: string) => request<BuildJob>(`/api/v1/builds/${id}/cancel`, { method: "POST" }),
-  loginUrl: (provider: string) => {
-    const base =
-      typeof window !== "undefined"
-        ? process.env.NEXT_PUBLIC_API_URL || window.location.origin
-        : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8088";
-    return `${base}/api/v1/auth/${provider}/login`;
-  },
+  loginUrl: (provider: string) => `/api/v1/auth/${provider}/login`,
 };
 
 export const BUILD_STAGES = ["queued", "building", "scanning", "deploying", "success"] as const;
