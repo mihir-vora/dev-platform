@@ -40,6 +40,7 @@ COPY --from=frontend-builder /app/public /app/frontend/public
 COPY --from=frontend-builder /app/.next/standalone /app/frontend
 COPY --from=frontend-builder /app/.next/static /app/frontend/.next/static
 COPY deploy/nginx.vibsl.conf.template /app/nginx.vibsl.conf.template
+COPY deploy/nginx.vibsl.main.conf /app/nginx.vibsl.main.conf
 COPY deploy/start.sh /app/start.sh
 RUN sed -i 's/\r$//' /app/start.sh && chmod +x /app/start.sh
 

@@ -3,10 +3,11 @@ set -e
 
 LISTEN_PORT="${PORT:-8080}"
 export API_PORT=8081
+NGINX_CONF=/app/nginx.vibsl.main.conf
 
 shutdown() {
   kill "$WORKER_PID" "$API_PID" "$FRONTEND_PID" 2>/dev/null || true
-  nginx -s quit 2>/dev/null || true
+  nginx -c "$NGINX_CONF" -s quit 2>/dev/null || true
   exit 0
 }
 trap shutdown TERM INT
@@ -16,8 +17,10 @@ if [ -n "$DATABASE_URL" ]; then
   migrate -path /app/migrations -database "$DATABASE_URL" up
 fi
 
-mkdir -p /etc/nginx/http.d
-sed "s/__LISTEN_PORT__/${LISTEN_PORT}/g" /app/nginx.vibsl.conf.template > /etc/nginx/http.d/default.conf
+mkdir -p /tmp/nginx/http.d \
+  /tmp/nginx/client_body /tmp/nginx/proxy /tmp/nginx/fastcgi \
+  /tmp/nginx/uwsgi /tmp/nginx/scgi
+sed "s/__LISTEN_PORT__/${LISTEN_PORT}/g" /app/nginx.vibsl.conf.template > /tmp/nginx/http.d/default.conf
 
 echo "Starting worker..."
 /app/worker &
@@ -41,4 +44,4 @@ for _ in $(seq 1 60); do
 done
 
 echo "Starting nginx on :${LISTEN_PORT}..."
-exec nginx -g 'daemon off;'
+exec nginx -c "$NGINX_CONF" -g 'daemon off;'
