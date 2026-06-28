@@ -9,7 +9,7 @@ Use pgAdmin to browse the data — no manual SQL is required unless you use your
 
 ```powershell
 cd C:\Users\Mihir Vora\Projects\dev-platform
-docker compose up -d
+docker compose -f docker-compose.local.yml up -d
 ```
 
 2. In pgAdmin 4, register a new server:
@@ -32,12 +32,12 @@ docker compose up -d
 - `build_log_lines`
 - `schema_migrations`
 
-Migrations run automatically when you `docker compose up` (via the `migrate` service).
+Migrations run automatically when you `docker compose -f docker-compose.local.yml up` (via the `migrate` service).
 
 To re-run migrations manually:
 
 ```powershell
-docker compose run --rm migrate
+docker compose -f docker-compose.local.yml run --rm migrate
 ```
 
 ## Option B: Use your local PostgreSQL (port 5432)
@@ -60,10 +60,10 @@ docker run --rm -v "${PWD}/backend/migrations:/migrations" migrate/migrate:v4.17
 DATABASE_URL=postgres://devplatform:devplatform@localhost:5432/devplatform?sslmode=disable
 ```
 
-5. Point `docker-compose.yml` `api` and `worker` `DATABASE_URL` to `host.docker.internal:5432` instead of `postgres:5432`, then:
+5. Point `docker-compose.local.yml` `api` and `worker` `DATABASE_URL` to `host.docker.internal:5432` instead of `postgres:5432`, then:
 
 ```powershell
-docker compose up -d --force-recreate api worker
+docker compose -f docker-compose.local.yml up -d --force-recreate api worker
 ```
 
 ## Verify migrations

@@ -45,4 +45,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: docker compose build
+      - run: docker compose -f docker-compose.local.yml build

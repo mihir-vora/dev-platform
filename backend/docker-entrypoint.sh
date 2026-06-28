@@ -11,6 +11,12 @@ case "$1" in
   migrate)
     exec migrate -path /app/migrations -database "$DATABASE_URL" up
     ;;
+  start)
+    if [ -n "$DATABASE_URL" ]; then
+      migrate -path /app/migrations -database "$DATABASE_URL" up
+    fi
+    exec /app/api
+    ;;
   *)
     exec "$@"
     ;;

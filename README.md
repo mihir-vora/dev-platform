@@ -46,7 +46,7 @@ cp .env.example .env
 3. Start the stack:
 
 ```bash
-docker compose up --build
+docker compose -f docker-compose.local.yml up --build
 ```
 
 4. Open the app at [http://localhost:8088](http://localhost:8088)
@@ -142,6 +142,14 @@ npm run dev
 
 For staging at `app-dev.vibsl.com`:
 
+**VIBSL auto-deploy** uses the root `Dockerfile` (API only, single process). It does not run `docker-compose.yml` or Supervisor. Ensure:
+
+- GitHub default branch is `main` and matches your latest code (`git push origin master:main` if you use `master` locally).
+- `DATABASE_URL` and `SESSION_SECRET` are set in the VIBSL environment.
+- Health probe: `GET /health` on port `8080`.
+
+The full stack (frontend, worker, nginx) is deployed via Compose locally or by the VIBSL team for staging review.
+
 1. Set production values in `.env`:
 
 ```env
@@ -155,7 +163,7 @@ SESSION_SECRET=<strong-random-secret>
 2. Deploy with production overrides:
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.local.yml -f docker-compose.prod.yml up -d --build
 ```
 
 3. Ensure TLS terminates at your load balancer and forwards `X-Forwarded-Proto: https`.
